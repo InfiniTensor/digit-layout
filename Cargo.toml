@@ -12,8 +12,7 @@ keywords = ["digit", "layout", "data-type"]
 categories = ["no-std::no-alloc"]
 
 [dependencies]
-half_ = { version = "2.4", package = "half", optional = true }
+half = { version = "2.4", optional = true }
 
 [features]
 default = ["half"]
-half = ["half_"]

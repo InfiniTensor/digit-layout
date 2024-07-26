@@ -33,7 +33,7 @@ impl_digit!(f64 : F64 , CF64 );
 
 #[cfg(feature = "half")]
 mod half_impl {
-    use half_::{bf16, f16};
+    use half::{bf16, f16};
 
     impl_digit!( f16        : super::F16   , CF16   );
     impl_digit!([f16 ; 2]   : super::F16x2 , CF16_2 );
