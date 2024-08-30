@@ -12,4 +12,4 @@
 ![GitHub contributors](https://img.shields.io/github/contributors/YdrMaster/digit-layout)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/YdrMaster/digit-layout)
 
-This crate provides types, traits and macros to define the memory layout of digital types as `[sign|exponent|mantissa; N]`.
+This crate provides a unified data type definition across various libraries, efficiently encodes types in a compact layout, thus avoiding the redundancy of enumerating definitions for data types.
