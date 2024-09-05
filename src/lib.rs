@@ -65,7 +65,6 @@ impl DigitLayout {
         while let [b, tail @ ..] = bytes {
             bytes = tail;
 
-            const MARK: u32 = 0x60_00_00_00; // 0b011...
             let b = match b {
                 b'0'..=b'9' => *b - b'0',
                 b'a'..=b'z' => *b - b'a' + 10,
@@ -74,8 +73,9 @@ impl DigitLayout {
                 _ => panic!("Invalid character in digit name"),
             };
             body += (b as u32 + 1) * exp;
-            assert!(body & MARK == 0);
-            assert!(exp & MARK == 0);
+            const GUARD: u32 = 0xc0_00_00_00; // 0b110...
+            assert!(body & GUARD != GUARD);
+            assert!(exp & GUARD != GUARD);
             exp *= 37; // 37 = 10 + 26 + 1
         }
         Self::new(DigitLayoutType::Named, body)
@@ -221,6 +221,14 @@ fn test_named() {
         q8_0.decode(),
         LayoutContent::Named {
             name: [b'q', b'8', b'0', 0, 0, 0, 0, 0]
+        }
+    ));
+
+    let iq2xxs = DigitLayout::named("IQ2XXS");
+    assert!(matches!(
+        iq2xxs.decode(),
+        LayoutContent::Named {
+            name: [b'i', b'q', b'2', b'x', b'x', b's', 0, 0]
         }
     ));
 
