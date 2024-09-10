@@ -14,4 +14,4 @@ layout!(F16  e( 5)m(10));
 layout!(BF16 e( 8)m( 7));
 layout!(F32  e( 8)m(23));
 layout!(F64  e(11)m(52));
-layout!(Bool "bool"    );
+layout!(Bool = "bool");

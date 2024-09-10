@@ -86,6 +86,12 @@ impl DigitLayout {
         Self((ty as u32) | body)
     }
 
+    /// Raw transmutation to `u32`.
+    #[inline]
+    pub const fn to_u32(self) -> u32 {
+        self.0
+    }
+
     /// Decode the content of the digit layout.
     #[inline]
     pub const fn decode(self) -> LayoutContent {
@@ -112,6 +118,29 @@ impl DigitLayout {
                     i += 1;
                 }
                 LayoutContent::Named { name }
+            }
+        }
+    }
+}
+
+use core::fmt;
+
+impl fmt::Display for DigitLayout {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use LayoutContent::*;
+        match self.decode() {
+            Unsigned { width } => write!(f, "u{width}"),
+            Real { exponent, mantissa } => {
+                write!(f, "f{}(e{exponent}m{mantissa})", 1 + exponent + mantissa)
+            }
+            Named { name } => {
+                for c in name {
+                    if c == 0 {
+                        break;
+                    }
+                    write!(f, "{}", c as char)?;
+                }
+                Ok(())
             }
         }
     }
