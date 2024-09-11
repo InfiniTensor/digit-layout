@@ -39,19 +39,27 @@ enum DigitLayoutType {
     Real = 0xc0_00_00_00,     // 0b110...
     Named = 0,                // 0b...
 }
-const HEAD: u32 = DigitLayoutType::Unsigned as _;
+const UNSIGNED: u32 = DigitLayoutType::Unsigned as _;
+const SIGNED: u32 = DigitLayoutType::Real as _;
+const HEAD: u32 = UNSIGNED;
 
 impl DigitLayout {
     /// Create a new digit layout for an unsigned integer type.
     #[inline]
     pub const fn unsigned(width: u32) -> Self {
-        assert!(width & HEAD == 0);
-        Self::new(DigitLayoutType::Unsigned, width)
+        assert!(width.is_power_of_two() && width >= 8);
+
+        let body = width;
+        assert!(body & HEAD == 0);
+        Self::new(DigitLayoutType::Unsigned, body)
     }
 
     /// Create a new digit layout for a real number type.
     #[inline]
     pub const fn real(exponent: u32, mantissa: u32) -> Self {
+        let width = 1 + exponent + mantissa;
+        assert!(width.is_power_of_two() && width >= 8);
+
         let body = (exponent << 16) | mantissa;
         assert!(body & HEAD == 0);
         Self::new(DigitLayoutType::Real, body)
@@ -92,20 +100,30 @@ impl DigitLayout {
         self.0
     }
 
-    /// Decode the content of the digit layout.
-    #[inline]
-    pub const fn decode(self) -> LayoutContent {
-        const UNSIGNED: u32 = DigitLayoutType::Unsigned as _;
-        const SIGNED: u32 = DigitLayoutType::Real as _;
+    /// Get the number of bytes occupied by this layout.
+    pub const fn nbytes(self) -> Option<usize> {
+        let head = self.0 & HEAD;
+        match head {
+            UNSIGNED => Some(self.decode_unsigned() as usize / 8),
+            SIGNED => {
+                let exponent = self.decode_exponent();
+                let mantissa = self.decode_mantissa();
+                Some((1 + exponent + mantissa) as usize / 8)
+            }
+            _ => None,
+        }
+    }
 
+    /// Decode the content of the digit layout.
+    pub const fn decode(self) -> LayoutContent {
         let head = self.0 & HEAD;
         match head {
             UNSIGNED => LayoutContent::Unsigned {
-                width: self.0 & !HEAD,
+                width: self.decode_unsigned(),
             },
             SIGNED => LayoutContent::Real {
-                exponent: ((self.0 & !HEAD) >> 16) & 0xff,
-                mantissa: self.0 & 0xffff,
+                exponent: self.decode_exponent(),
+                mantissa: self.decode_mantissa(),
             },
             _ => {
                 let mut name = [0; 8];
@@ -120,6 +138,21 @@ impl DigitLayout {
                 LayoutContent::Named { name }
             }
         }
+    }
+
+    #[inline(always)]
+    const fn decode_unsigned(self) -> u32 {
+        self.0 & !HEAD
+    }
+
+    #[inline(always)]
+    const fn decode_exponent(self) -> u32 {
+        ((self.0 & !HEAD) >> 16) & 0xff
+    }
+
+    #[inline(always)]
+    const fn decode_mantissa(self) -> u32 {
+        self.0 & 0xffff
     }
 }
 
@@ -175,7 +208,7 @@ fn test_real() {
         types::I8.decode(),
         LayoutContent::Real {
             exponent: 0,
-            mantissa: 8,
+            mantissa: 7,
         }
     ));
 
@@ -183,7 +216,7 @@ fn test_real() {
         types::I16.decode(),
         LayoutContent::Real {
             exponent: 0,
-            mantissa: 16,
+            mantissa: 15,
         }
     ));
 
@@ -191,7 +224,7 @@ fn test_real() {
         types::I32.decode(),
         LayoutContent::Real {
             exponent: 0,
-            mantissa: 32,
+            mantissa: 31,
         }
     ));
 
@@ -199,7 +232,7 @@ fn test_real() {
         types::I64.decode(),
         LayoutContent::Real {
             exponent: 0,
-            mantissa: 64,
+            mantissa: 63,
         }
     ));
 

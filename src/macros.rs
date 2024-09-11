@@ -6,7 +6,7 @@ macro_rules! layout {
         pub const $name: $crate::DigitLayout = $crate::DigitLayout::unsigned($bits);
     };
     ($name:ident i($bits:expr)) => {
-        layout!($name e(0)m($bits));
+        layout!($name e(0)m($bits - 1));
     };
     ($name:ident e($exponent:expr)m($mantissa:expr)) => {
         #[allow(non_upper_case_globals)]
