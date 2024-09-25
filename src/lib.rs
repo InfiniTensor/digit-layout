@@ -7,7 +7,7 @@ mod macros;
 pub mod types;
 
 /// A layout of a digit data type in memory.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 #[repr(transparent)]
 pub struct DigitLayout(u32);
 
