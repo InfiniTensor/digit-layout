@@ -8,8 +8,12 @@ pub mod types;
 
 /// A layout of a digit data type in memory.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-#[repr(transparent)]
-pub struct DigitLayout(u32);
+#[repr(C)]
+pub struct DigitLayout {
+    code: u32,
+    group: u16,
+    size: u16,
+}
 
 /// The content of a digit layout.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -46,27 +50,27 @@ const HEAD: u32 = UNSIGNED;
 impl DigitLayout {
     /// Create a new digit layout for an unsigned integer type.
     #[inline]
-    pub const fn unsigned(width: u32) -> Self {
+    pub const fn unsigned(width: u16, group: u16) -> Self {
         assert!(width.is_power_of_two() && width >= 8);
 
-        let body = width;
+        let body = width as u32;
         assert!(body & HEAD == 0);
-        Self::new(DigitLayoutType::Unsigned, body)
+        Self::new(DigitLayoutType::Unsigned, body, group, width / 8 * group)
     }
 
     /// Create a new digit layout for a real number type.
     #[inline]
-    pub const fn real(exponent: u32, mantissa: u32) -> Self {
+    pub const fn real(exponent: u16, mantissa: u16, group: u16) -> Self {
         let width = 1 + exponent + mantissa;
         assert!(width.is_power_of_two() && width >= 8);
 
-        let body = (exponent << 16) | mantissa;
+        let body = ((exponent as u32) << 16) | mantissa as u32;
         assert!(body & HEAD == 0);
-        Self::new(DigitLayoutType::Real, body)
+        Self::new(DigitLayoutType::Real, body, group, width / 8 * group)
     }
 
     /// Create a new digit layout for a named type.
-    pub const fn named(name: &str) -> Self {
+    pub const fn named(name: &str, group: u16, size: u16) -> Self {
         let mut exp = 1;
         let mut bytes = name.as_bytes();
         let mut body = 0;
@@ -86,37 +90,37 @@ impl DigitLayout {
             assert!(exp & GUARD != GUARD);
             exp *= 37; // 37 = 10 + 26 + 1
         }
-        Self::new(DigitLayoutType::Named, body)
+        Self::new(DigitLayoutType::Named, body, group, size)
     }
 
     #[inline(always)]
-    const fn new(ty: DigitLayoutType, body: u32) -> Self {
-        Self((ty as u32) | body)
+    const fn new(ty: DigitLayoutType, body: u32, group: u16, size: u16) -> Self {
+        Self {
+            code: ((ty as u32) | body),
+            group,
+            size,
+        }
     }
 
     /// Raw transmutation to `u32`.
     #[inline]
-    pub const fn to_u32(self) -> u32 {
-        self.0
+    pub const fn to_u64(self) -> u64 {
+        unsafe { core::mem::transmute(self) }
     }
 
     /// Get the number of bytes occupied by this layout.
-    pub const fn nbytes(self) -> Option<usize> {
-        let head = self.0 & HEAD;
-        match head {
-            UNSIGNED => Some(self.decode_unsigned() as usize / 8),
-            SIGNED => {
-                let exponent = self.decode_exponent();
-                let mantissa = self.decode_mantissa();
-                Some((1 + exponent + mantissa) as usize / 8)
-            }
-            _ => None,
-        }
+    pub const fn group_size(self) -> usize {
+        self.group as _
+    }
+
+    /// Get the number of bytes occupied by this layout.
+    pub const fn nbytes(self) -> usize {
+        self.size as _
     }
 
     /// Decode the content of the digit layout.
     pub const fn decode(self) -> LayoutContent {
-        let head = self.0 & HEAD;
+        let head = self.code & HEAD;
         match head {
             UNSIGNED => LayoutContent::Unsigned {
                 width: self.decode_unsigned(),
@@ -127,7 +131,7 @@ impl DigitLayout {
             },
             _ => {
                 let mut name = [0; 8];
-                let mut body = self.0;
+                let mut body = self.code;
                 let mut i = 0;
                 while body > 0 {
                     let b = (body % 37) as u8 - 1;
@@ -142,17 +146,17 @@ impl DigitLayout {
 
     #[inline(always)]
     const fn decode_unsigned(self) -> u32 {
-        self.0 & !HEAD
+        self.code & !HEAD
     }
 
     #[inline(always)]
     const fn decode_exponent(self) -> u32 {
-        ((self.0 & !HEAD) >> 16) & 0xff
+        ((self.code & !HEAD) >> 16) & 0xff
     }
 
     #[inline(always)]
     const fn decode_mantissa(self) -> u32 {
-        self.0 & 0xffff
+        self.code & 0xffff
     }
 }
 
@@ -162,9 +166,20 @@ impl fmt::Display for DigitLayout {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use LayoutContent::*;
         match self.decode() {
-            Unsigned { width } => write!(f, "u{width}"),
+            Unsigned { width } => {
+                if self.group == 1 {
+                    write!(f, "u{width}")
+                } else {
+                    write!(f, "[u{width}; {}]", self.group)
+                }
+            }
             Real { exponent, mantissa } => {
-                write!(f, "f{}(e{exponent}m{mantissa})", 1 + exponent + mantissa)
+                let width = 1 + exponent + mantissa;
+                if self.group == 1 {
+                    write!(f, "f{width}_e{exponent}m{mantissa}")
+                } else {
+                    write!(f, "[f{width}_e{exponent}m{mantissa}; {}]", self.group)
+                }
             }
             Named { name } => {
                 for c in name {
@@ -278,7 +293,7 @@ fn test_named() {
         }
     ));
 
-    let q8_0 = DigitLayout::named("Q8_0");
+    let q8_0 = DigitLayout::named("Q8_0", 32, 34);
     assert!(matches!(
         q8_0.decode(),
         LayoutContent::Named {
@@ -286,7 +301,7 @@ fn test_named() {
         }
     ));
 
-    let iq2xxs = DigitLayout::named("IQ2XXS");
+    let iq2xxs = DigitLayout::named("IQ2XXS", 256, 66);
     assert!(matches!(
         iq2xxs.decode(),
         LayoutContent::Named {
@@ -294,7 +309,7 @@ fn test_named() {
         }
     ));
 
-    let zzzzzz = DigitLayout::named("zzzzzz");
+    let zzzzzz = DigitLayout::named("zzzzzz", 1, 1);
     assert!(matches!(
         zzzzzz.decode(),
         LayoutContent::Named {

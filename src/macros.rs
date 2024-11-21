@@ -1,22 +1,29 @@
 ﻿/// 定义一个 [`DigitLayout`](crate::DigitLayout) 实例。
 #[macro_export]
 macro_rules! layout {
-    ($name:ident u($bits:expr)) => {
+    ($name:ident u($bits:expr); $group:expr) => {
         #[allow(non_upper_case_globals)]
-        pub const $name: $crate::DigitLayout = $crate::DigitLayout::unsigned($bits);
+        pub const $name: $crate::DigitLayout = $crate::DigitLayout::unsigned($bits, $group);
+    };
+    ($name:ident e($exponent:expr)m($mantissa:expr); $group:expr) => {
+        #[allow(non_upper_case_globals)]
+        pub const $name: $crate::DigitLayout = $crate::DigitLayout::real($exponent, $mantissa, $group);
+    };
+    ($name:ident = $text:expr; [$group:expr] in $size:expr) => {
+        #[allow(non_upper_case_globals)]
+        pub const $name: $crate::DigitLayout = $crate::DigitLayout::named($text, $group, $size);
+    };
+
+    ($name:ident u($bits:expr)) => {
+        layout!($name u($bits); 1);
     };
     ($name:ident i($bits:expr)) => {
-        layout!($name e(0)m($bits - 1));
+        layout!($name e(0)m($bits - 1); 1);
     };
     ($name:ident e($exponent:expr)m($mantissa:expr)) => {
-        #[allow(non_upper_case_globals)]
-        pub const $name: $crate::DigitLayout = $crate::DigitLayout::real($exponent, $mantissa);
+        layout!($name e($exponent)m($mantissa); 1);
     };
-    ($name:ident = $text:expr) => {
-        #[allow(non_upper_case_globals)]
-        pub const $name: $crate::DigitLayout = $crate::DigitLayout::named($text);
-    };
-    ($name:ident) => {
-        layout!($name = stringify!($name));
+    ($name:ident; [$group:expr] in $size:expr) => {
+        layout!($name = stringify!($name); [$group] in $size);
     };
 }
