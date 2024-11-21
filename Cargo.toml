@@ -1,7 +1,7 @@
 [package]
 name = "digit-layout"
 description = "This crate provides a unified data type definition across various libraries, efficiently encodes types in a compact layout, thus avoiding the redundancy of enumerating definitions for data types."
-version = "0.2.0-alpha.1"
+version = "0.2.0"
 edition = "2021"
 authors = ["YdrMaster <ydrml@hotmail.com>"]
 repository = "https://github.com/InfiniTensor/digit-layout.git"

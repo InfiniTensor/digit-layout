@@ -15,15 +15,15 @@ macro_rules! layout {
     };
 
     ($name:ident u($bits:expr)) => {
-        layout!($name u($bits); 1);
+        $crate::layout!($name u($bits); 1);
     };
     ($name:ident i($bits:expr)) => {
-        layout!($name e(0)m($bits - 1); 1);
+        $crate::layout!($name e(0)m($bits - 1); 1);
     };
     ($name:ident e($exponent:expr)m($mantissa:expr)) => {
-        layout!($name e($exponent)m($mantissa); 1);
+        $crate::layout!($name e($exponent)m($mantissa); 1);
     };
     ($name:ident; [$group:expr] in $size:expr) => {
-        layout!($name = stringify!($name); [$group] in $size);
+        $crate::layout!($name = stringify!($name); [$group] in $size);
     };
 }
