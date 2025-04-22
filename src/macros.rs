@@ -1,15 +1,18 @@
-﻿/// 定义一个 [`DigitLayout`](crate::DigitLayout) 实例。
+﻿/// Defines an instance of [`DigitLayout`](crate::DigitLayout).
 #[macro_export]
 macro_rules! layout {
     ($name:ident u($bits:expr); $group:expr) => {
+        // 允许使用小写常量名，因为这是用户定义的布局名称，应该保持原始大小写
         #[allow(non_upper_case_globals)]
         pub const $name: $crate::DigitLayout = $crate::DigitLayout::unsigned($bits, $group);
     };
     ($name:ident e($exponent:expr)m($mantissa:expr); $group:expr) => {
+        // 允许使用小写常量名，因为这是用户定义的布局名称，应该保持原始大小写
         #[allow(non_upper_case_globals)]
         pub const $name: $crate::DigitLayout = $crate::DigitLayout::real($exponent, $mantissa, $group);
     };
     ($name:ident = $text:expr; [$group:expr] in $size:expr) => {
+        // 允许使用小写常量名，因为这是用户定义的布局名称，应该保持原始大小写
         #[allow(non_upper_case_globals)]
         pub const $name: $crate::DigitLayout = $crate::DigitLayout::named($text, $group, $size);
     };
