@@ -42,12 +42,12 @@ pub enum LayoutContent {
 
 #[repr(u32)]
 enum DigitLayoutType {
-    Unsigned = 0xe0_00_00_00, // 0b111...
-    Real = 0xc0_00_00_00,     // 0b110...
-    Named = 0,                // 0b...
+    Unsigned = 0xE000_0000, // 0b111...
+    Real = 0xC000_0000,     // 0b110...
+    Named = 0,              // 0b...
 }
-const UNSIGNED: u32 = DigitLayoutType::Unsigned as _;
-const SIGNED: u32 = DigitLayoutType::Real as _;
+const UNSIGNED: u32 = DigitLayoutType::Unsigned as u32;
+const SIGNED: u32 = DigitLayoutType::Real as u32;
 const HEAD: u32 = UNSIGNED;
 
 impl DigitLayout {
@@ -88,7 +88,7 @@ impl DigitLayout {
                 _ => panic!("Invalid character in digit name"),
             };
             body += (b as u32 + 1) * exp;
-            const GUARD: u32 = 0xc0_00_00_00; // 0b110...
+            const GUARD: u32 = 0xC000_0000; // 0b110...
             assert!(body & GUARD != GUARD);
             assert!(exp & GUARD != GUARD);
             exp *= 37; // 37 = 10 + 26 + 1
@@ -99,13 +99,13 @@ impl DigitLayout {
     #[inline(always)]
     const fn new(ty: DigitLayoutType, body: u32, group: u16, size: u16) -> Self {
         Self {
-            code: ((ty as u32) | body),
+            code: (ty as u32) | body,
             group,
             size,
         }
     }
 
-    /// Raw transmutation to `u32`.
+    /// Raw transmutation to `u64`.
     #[inline]
     pub const fn to_u64(self) -> u64 {
         unsafe { core::mem::transmute(self) }
@@ -113,12 +113,12 @@ impl DigitLayout {
 
     /// Get the number of bytes occupied by this layout.
     pub const fn group_size(self) -> usize {
-        self.group as _
+        self.group as usize
     }
 
     /// Get the number of bytes occupied by this layout.
     pub const fn nbytes(self) -> usize {
-        self.size as _
+        self.size as usize
     }
 
     /// Decode the content of the digit layout.
@@ -154,12 +154,12 @@ impl DigitLayout {
 
     #[inline(always)]
     const fn decode_exponent(self) -> u32 {
-        ((self.code & !HEAD) >> 16) & 0xff
+        ((self.code & !HEAD) >> 16) & 0xFF
     }
 
     #[inline(always)]
     const fn decode_mantissa(self) -> u32 {
-        self.code & 0xffff
+        self.code & 0xFFFF
     }
 }
 

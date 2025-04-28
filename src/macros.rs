@@ -1,4 +1,4 @@
-﻿/// 定义一个 [`DigitLayout`](crate::DigitLayout) 实例。
+﻿/// Defines an instance of [`DigitLayout`](crate::DigitLayout).
 #[macro_export]
 macro_rules! layout {
     ($name:ident u($bits:expr); $group:expr) => {
