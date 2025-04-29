@@ -330,7 +330,6 @@ fn test_decode_methods() {
     let u16_layout = DigitLayout::unsigned(16, 1);
     assert_eq!(u16_layout.decode_unsigned(), 16);
     
-    // 测试decode_exponent和decode_mantissa方法
     let f32_layout = DigitLayout::real(8, 23, 1);
     assert_eq!(f32_layout.decode_exponent(), 8);
     assert_eq!(f32_layout.decode_mantissa(), 23);
@@ -358,7 +357,6 @@ fn test_group_size_and_nbytes() {
 
 #[test]
 fn test_to_u64() {
-    // 测试to_u64方法
     let layout = DigitLayout::unsigned(32, 1);
     let u64_value = layout.to_u64();
     assert_ne!(u64_value, 0);
@@ -371,7 +369,6 @@ fn test_to_u64() {
 
 #[test]
 fn test_display_impl() {
-    // 测试Display实现
     use core::fmt::Write;
     use alloc::string::String;
     
@@ -384,31 +381,26 @@ fn test_display_impl() {
         }
     }
     
-    // 测试unsigned类型的Display
     let u8_layout = DigitLayout::unsigned(8, 1);
     let mut writer = TestWriter(String::new());
     write!(writer, "{}", u8_layout).unwrap();
     assert_eq!(writer.0, "u8");
     
-    // 测试unsigned数组的Display
     let u8_array_layout = DigitLayout::unsigned(8, 4);
     let mut writer = TestWriter(String::new());
     write!(writer, "{}", u8_array_layout).unwrap();
     assert_eq!(writer.0, "[u8; 4]");
     
-    // 测试real类型的Display
     let f32_layout = DigitLayout::real(8, 23, 1);
     let mut writer = TestWriter(String::new());
     write!(writer, "{}", f32_layout).unwrap();
     assert_eq!(writer.0, "f32_e8m23");
     
-    // 测试real数组的Display
     let f32_array_layout = DigitLayout::real(8, 23, 2);
     let mut writer = TestWriter(String::new());
     write!(writer, "{}", f32_array_layout).unwrap();
     assert_eq!(writer.0, "[f32_e8m23; 2]");
     
-    // 测试named类型的Display
     let named_layout = DigitLayout::named("test", 1, 4);
     let mut writer = TestWriter(String::new());
     write!(writer, "{}", named_layout).unwrap();
@@ -429,9 +421,7 @@ fn test_named_edge_cases() {
         }
     }
     
-    // 测试named方法的边缘情况
     let empty_name = DigitLayout::named("", 1, 1);
-    // 测试空名称的显示（不使用format!宏）
     let mut writer = TestWriter(String::new());
     let _ = write!(writer, "{}", empty_name);
     
@@ -443,7 +433,6 @@ fn test_named_edge_cases() {
         }
     ));
     
-    // 测试带下划线和点的名称
     let with_special = DigitLayout::named("a_b.c", 1, 1);
     assert!(matches!(
         with_special.decode(),
