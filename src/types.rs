@@ -1,5 +1,6 @@
 ﻿//! Predefined layouts for basic and commonly used types.
 
+// 允许缺少文档注释，因为这些是预定义的类型布局常量，它们的名称和用途已经足够清晰
 #![allow(missing_docs)]
 
 layout!(U8    u(  8));

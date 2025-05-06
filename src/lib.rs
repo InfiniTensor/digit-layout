@@ -326,14 +326,14 @@ fn test_decode_methods() {
     // 测试decode_unsigned方法
     let u8_layout = DigitLayout::unsigned(8, 1);
     assert_eq!(u8_layout.decode_unsigned(), 8);
-    
+
     let u16_layout = DigitLayout::unsigned(16, 1);
     assert_eq!(u16_layout.decode_unsigned(), 16);
-    
+
     let f32_layout = DigitLayout::real(8, 23, 1);
     assert_eq!(f32_layout.decode_exponent(), 8);
     assert_eq!(f32_layout.decode_mantissa(), 23);
-    
+
     let f64_layout = DigitLayout::real(11, 52, 1);
     assert_eq!(f64_layout.decode_exponent(), 11);
     assert_eq!(f64_layout.decode_mantissa(), 52);
@@ -345,11 +345,11 @@ fn test_group_size_and_nbytes() {
     let layout1 = DigitLayout::unsigned(32, 4);
     assert_eq!(layout1.group_size(), 4);
     assert_eq!(layout1.nbytes(), 16); // 32/8 * 4 = 16
-    
+
     let layout2 = DigitLayout::real(8, 23, 2);
     assert_eq!(layout2.group_size(), 2);
     assert_eq!(layout2.nbytes(), 8); // (1+8+23)/8 * 2 = 8
-    
+
     let layout3 = DigitLayout::named("test", 3, 12);
     assert_eq!(layout3.group_size(), 3);
     assert_eq!(layout3.nbytes(), 12);
@@ -360,7 +360,7 @@ fn test_to_u64() {
     let layout = DigitLayout::unsigned(32, 1);
     let u64_value = layout.to_u64();
     assert_ne!(u64_value, 0);
-    
+
     let same_layout = DigitLayout::unsigned(32, 1);
     assert_eq!(layout.to_u64(), same_layout.to_u64());
     let different_layout = DigitLayout::unsigned(64, 1);
@@ -369,38 +369,38 @@ fn test_to_u64() {
 
 #[test]
 fn test_display_impl() {
-    use core::fmt::Write;
     use alloc::string::String;
-    
+    use core::fmt::Write;
+
     struct TestWriter(String);
-    
+
     impl Write for TestWriter {
         fn write_str(&mut self, s: &str) -> core::fmt::Result {
             self.0.push_str(s);
             Ok(())
         }
     }
-    
+
     let u8_layout = DigitLayout::unsigned(8, 1);
     let mut writer = TestWriter(String::new());
     write!(writer, "{}", u8_layout).unwrap();
     assert_eq!(writer.0, "u8");
-    
+
     let u8_array_layout = DigitLayout::unsigned(8, 4);
     let mut writer = TestWriter(String::new());
     write!(writer, "{}", u8_array_layout).unwrap();
     assert_eq!(writer.0, "[u8; 4]");
-    
+
     let f32_layout = DigitLayout::real(8, 23, 1);
     let mut writer = TestWriter(String::new());
     write!(writer, "{}", f32_layout).unwrap();
     assert_eq!(writer.0, "f32_e8m23");
-    
+
     let f32_array_layout = DigitLayout::real(8, 23, 2);
     let mut writer = TestWriter(String::new());
     write!(writer, "{}", f32_array_layout).unwrap();
     assert_eq!(writer.0, "[f32_e8m23; 2]");
-    
+
     let named_layout = DigitLayout::named("test", 1, 4);
     let mut writer = TestWriter(String::new());
     write!(writer, "{}", named_layout).unwrap();
@@ -409,22 +409,22 @@ fn test_display_impl() {
 
 #[test]
 fn test_named_edge_cases() {
-    use core::fmt::Write;
     use alloc::string::String;
-    
+    use core::fmt::Write;
+
     struct TestWriter(String);
-    
+
     impl Write for TestWriter {
         fn write_str(&mut self, s: &str) -> core::fmt::Result {
             self.0.push_str(s);
             Ok(())
         }
     }
-    
+
     let empty_name = DigitLayout::named("", 1, 1);
     let mut writer = TestWriter(String::new());
     let _ = write!(writer, "{}", empty_name);
-    
+
     let alphanumeric = DigitLayout::named("a1B2c3", 1, 1);
     assert!(matches!(
         alphanumeric.decode(),
@@ -432,7 +432,7 @@ fn test_named_edge_cases() {
             name: [b'a', b'1', b'b', b'2', b'c', b'3', 0, 0]
         }
     ));
-    
+
     let with_special = DigitLayout::named("a_b.c", 1, 1);
     assert!(matches!(
         with_special.decode(),

@@ -37,7 +37,7 @@ digit-layout = "0.3.0"
 ### 基本用法
 
 ```rust
-use digit_layout::DigitLayout;
+use digit_layout::{DigitLayout, LayoutContent};
 
 // 创建无符号整数类型布局
 let u8_layout = DigitLayout::unsigned(8, 1);
@@ -55,6 +55,8 @@ assert_eq!(custom_layout.to_string(), "custom");
 ### 数组类型
 
 ```rust
+use digit_layout::DigitLayout;
+
 // 创建无符号整数数组布局
 let u8_array = DigitLayout::unsigned(8, 4);
 assert_eq!(u8_array.to_string(), "[u8; 4]");
@@ -67,6 +69,8 @@ assert_eq!(f32_array.to_string(), "[f32_e8m23; 4]");
 ### 解码布局
 
 ```rust
+use digit_layout::{DigitLayout, LayoutContent};
+
 // 解码无符号整数布局
 let u8_layout = DigitLayout::unsigned(8, 1);
 match u8_layout.decode() {
