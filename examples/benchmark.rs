@@ -3,8 +3,8 @@ use std::hint::black_box;
 use std::time::Instant;
 
 fn main() {
-    println!("Starting performance test...\n");
-
+    println!("Starting performance test...");
+    println!();
     println!("Testing layout creation:");
 
     let start = Instant::now();
@@ -32,8 +32,8 @@ fn main() {
     }
     let duration = start.elapsed();
     println!("Creating custom layouts: {:?}", duration / 5);
-
-    println!("\nTesting layout decoding:");
+    println!();
+    println!("Testing layout decoding:");
 
     let u8_layout = DigitLayout::unsigned(8, 1);
     let f32_layout = DigitLayout::real(8, 23, 1);

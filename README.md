@@ -24,15 +24,6 @@
 - 无标准库依赖（no_std）；
 - 可选的 half 浮点数支持；
 
-## 安装
-
-在 Cargo.toml 中添加：
-
-```toml
-[dependencies]
-digit-layout = "0.3.0"
-```
-
 ## 使用示例
 
 ### 基本用法
